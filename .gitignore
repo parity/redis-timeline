@@ -7,3 +7,10 @@ test/dummy/tmp/
 test/dummy/.sass-cache
 spec/*.rdb
 *.gem
+*.tags
+*.tags_sorted_by_file
+*.swp
+*.swo
+*~
+*.s[a-w][a-z]
+vim.log

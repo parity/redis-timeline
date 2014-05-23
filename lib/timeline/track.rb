@@ -4,8 +4,6 @@ module Timeline::Track
   module ClassMethods
     def track(name, options={})
       @name = name
-      @callback = options.delete :on
-      @callback ||= :create
       @actor = options.delete :actor
       @actor ||= :creator
       @object = options.delete :object

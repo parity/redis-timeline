@@ -7,7 +7,7 @@ require "timeline/version"
 Gem::Specification.new do |s|
   s.name        = "redis_timeline"
   s.version     = Timeline::VERSION
-  s.authors     = ["Felix Clack"]
+  s.authors     = ["Felix Clack","Shiva Kumar"]
   s.email       = ["felixclack@gmail.com"]
   s.homepage    = "http://felixclack.github.com/redis-timeline"
   s.summary     = "Redis backed timeline for your activity feeds."

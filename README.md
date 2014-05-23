@@ -20,18 +20,17 @@ Examples
 
 The simple way...
 
-    class Post < ActiveRecord::Base
-      include Timeline::Track
+    class PostsController < ApplicationController
+      include Timeline::ControllerHelper
 
-      track :new_post
     end
 
-By default, track fires in the `after_create` callback of your model and uses `self` as the object and `creator` as the actor.
+Instead doing on the callback we explicity mention when we want to track the activity
 
-You can specify these options explicity...
+You can specify these options ...
 
-    class Comment < ActiveRecord::Base
-      include Timeline::Track
+    class PostsController < ApplicationController
+      include Timeline::ControllerHelper
       belongs_to :author, class_name: "User"
       belongs_to :post
 
@@ -43,6 +42,19 @@ You can specify these options explicity...
         target: :post
 
       delegate :participants, to: :post, prefix: true
+      def create
+      @post=Post.new(params[:post])
+        respond_to do |format|
+          if @post.save!
+            track_timeline_activity(:new_post,actor: current_user,followers: current_user.followers,target: @post.comment,object: @post) 
+            format.html { redirect_to(posts_path , :notice => 'Post was successfully created.') }
+          else
+            format.html { redirect_to(posts_path , :notice => @post.errors.full_messages) }
+            format.json { render json: @post.errors, status: :unprocessable_entity }
+          end
+
+        end
+      end
     end
 
 Parameters
@@ -54,13 +66,9 @@ the first param is the verb name.
 
 The rest all fit neatly in an options hash.
 
-* `on:` [ActiveModel callback]
-  You use it to specify whether you want the timeline activity created after a create, update or destroy.
-  Default: :create
-
 * `actor:` [the method that specifies the object that took this action]
   In the above example, comment.author is this object.
-  Default: :creator, so make sure this exists if you don't specify a method here
+  
 
 * `object:` defaults to self, which is good most of the time.
   You can override it if you need to
@@ -71,10 +79,6 @@ The rest all fit neatly in an options hash.
 * `followers:` [who should see this story in their timeline. This references a method on the actor]
   Defaults to the method `followers` defined by Timeline::Actor.
 
-* `extra_fields:` [accepts an array of method names that you would like to cache the value of in your timeline]
-  Defaults to nil.
-
-* `if:` symbol or proc/lambda lets you put conditions on when to track.
 
 Display a timeline
 ------------------
