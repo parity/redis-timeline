@@ -26,6 +26,8 @@ module Timeline
               defaults.merge!(list_name: "user:id:#{self.id}:posts")
             when :mentions
               defaults.merge!(list_name: "user:id:#{self.id}:mentions")
+            when :notifications
+              defaults.merge!(list_name: "user:id:#{self.id}:notification")
             end
           end
         end

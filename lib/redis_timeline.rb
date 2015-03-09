@@ -15,6 +15,7 @@ module Timeline
 end
 
 require 'timeline/controller_helper'
+require 'timeline/notification_helper'
 
 ActionController::Base.send :include, Timeline::ControllerHelper
-
+ActionController::Base.send :include, Timeline::NotificationHelper
