@@ -23,7 +23,7 @@ module Timeline
     		followers.each { |follower| add_to_redis "user:id:#{follower.id}:notification", activity_item}
     	end
 
-    	def add_to_redis(list, activity)
+    	def add_to_redis(list, activity_item)
     		Timeline.redis.lpush list, Timeline.encode(activity_item)
   		end
 
