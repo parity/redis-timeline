@@ -46,7 +46,7 @@ module Timeline
   		def get_unread_notification(user, options= {})
 		    result = {}
 		    $redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
-		      data = Timeline.decode(item))
+		      data = Timeline.decode(item)
 		      result.merge!(index => data) unless data.read
 		    end
 		    result
