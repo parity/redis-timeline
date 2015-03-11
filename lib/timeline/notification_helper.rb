@@ -28,9 +28,9 @@ module Timeline
   		end
 
   		def add_mentions(activity_item)
-        return unless @mentionable and @object.send(@mentionable)
-        @object.send(@mentionable).scan(/@\w+/).each do |mention|
-          if user = @actor.class.find_by_username(mention[1..-1])
+        return unless @mentionable
+        @mentionable.each do |mention|
+          if user = @actor.class.find_by_username(mention)
             add_activity_to_subscribed_user(user, activity_item)
           end
         end
