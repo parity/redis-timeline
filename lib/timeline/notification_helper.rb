@@ -68,8 +68,10 @@ module Timeline
     	 	def set_follower(follower)
 	    	 	if follower.is_a?(Array)
 	    	 		follower
-	    	 	else
+	    	 	elsif follower.present?
 	    	 		[follower]
+                        else
+				[]
 	    	 	end
     	 	end
 
