@@ -13,7 +13,7 @@ module Timeline
     		@target = options[:target]
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
-        @read = options[:read]
+        @read = options[:read] || true
 
         add_activity_to_subscribed_user(@followers,notification_activity)
         add_mentions(notification_activity)
@@ -30,7 +30,7 @@ module Timeline
   		def add_mentions(activity_item)
         return unless @mentionable
         @mentionable.each do |mention|
-          if user = @actor.class.find_by_username(mention)
+          if user = @actor.class.where("coalesce(display_name, login) = ?",mention).first
             add_activity_to_subscribed_user(user, activity_item)
           end
         end
