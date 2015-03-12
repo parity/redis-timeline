@@ -30,7 +30,7 @@ module Timeline
   		def add_mentions(activity_item)
         return unless @mentionable
         @mentionable.each do |mention|
-          if user = @actor.class.where("coalesce(display_name, login) = ?",mention).first
+          if user = @actor.class.where("coalesce(display_name, login) = ?",mention)
             add_activity_to_subscribed_user(user, activity_item)
           end
         end
