@@ -77,11 +77,11 @@ module Timeline
 
     	 def reset_read_activity(activity, read)
   			{
-	  			verb: activity.verb,
-	  			actor: activity.actor,
-	  			object: activity.object,
-	  			target: activity.target,
-	  			created_at: activity.created_at,
+	  			verb: activity["verb"],
+	  			actor: activity["actor"],
+	  			object: activity["object"],
+	  			target: activity["target"],
+	  			created_at: activity["created_at"],
 	  			read: read
   			}
   		end
