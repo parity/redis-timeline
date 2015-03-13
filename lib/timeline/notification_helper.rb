@@ -39,13 +39,13 @@ module Timeline
       def set_as_read_notification(user, read, options= {})
   			notifications = get_unread_notification(user, options)
   			notifications.each do |index, notification|
-  				$redis.lset("user:id:#{user.id}:notification",index, Timeline.encode(reset_read_activity(notification, read)))
+  				Timeline.redis.lset("user:id:#{user.id}:notification",index, Timeline.encode(reset_read_activity(notification, read)))
   			end
   		end
 
   		def get_unread_notification(user, options= {})
 		    result = {}
-		    $redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
+		    Timeline.redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
 		      data = Timeline.decode(item)
 		      result.merge!(index => data) unless data.read
 		    end
@@ -70,8 +70,8 @@ module Timeline
 	    	 		follower
 	    	 	elsif follower.present?
 	    	 		[follower]
-                        else
-				[]
+          else
+				    []
 	    	 	end
     	 	end
 
