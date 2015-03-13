@@ -13,7 +13,7 @@ module Timeline
     		@target = options[:target]
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
-        @read = options[:read] || true
+        @read = options[:read] || false
 
         add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
         add_mentions(notification_activity)
