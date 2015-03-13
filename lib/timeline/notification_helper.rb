@@ -47,7 +47,7 @@ module Timeline
 		    result = {}
 		    Timeline.redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
 		      data = Timeline.decode(item)
-		      result.merge!(index => data) unless data.read
+		      result.merge!(index => data) unless data["read"]
 		    end
 		    result
 		  end
