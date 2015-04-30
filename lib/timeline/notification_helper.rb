@@ -13,9 +13,9 @@ module Timeline
         @target = options[:target]
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
-        @read = options[:read]
+        @read = options[:read] || false
 
-        add_activity_to_subscribed_user(@followers,notification_activity)
+        add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
         add_mentions(notification_activity)
       end
 
@@ -37,7 +37,7 @@ module Timeline
       def add_mentions(activity_item)
         return unless @mentionable
         @mentionable.each do |mention|
-          if user = @actor.class.find_by_username(mention)
+          if user = @actor.class.where("coalesce(display_name, login) = ?",mention)
             add_activity_to_subscribed_user(user, activity_item)
           end
         end
@@ -46,15 +46,15 @@ module Timeline
       def set_as_read_notification(user, read, options= {})
         notifications = get_unread_notification(user, options)
         notifications.each do |index, notification|
-          $redis.lset("user:id:#{user.id}:notification",index, Timeline.encode(reset_read_activity(notification, read)))
+          Timeline.redis.lset("user:id:#{user.id}:notification",index, Timeline.encode(reset_read_activity(notification, read)))
         end
       end
 
       def get_unread_notification(user, options= {})
         result = {}
-        $redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
+        Timeline.redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
           data = Timeline.decode(item)
-          result.merge!(index => data) unless data.read
+          result.merge!(index => data) unless data["read"]
         end
         result
       end
@@ -75,18 +75,20 @@ module Timeline
         def set_follower(follower)
           if follower.is_a?(Array)
             follower
-          else
+          elsif follower.present?
             [follower]
+          else
+            []
           end
         end
 
        def reset_read_activity(activity, read)
         {
-          verb: activity.verb,
-          actor: activity.actor,
-          object: activity.object,
-          target: activity.target,
-          created_at: activity.created_at,
+          verb: activity["verb"],
+          actor: activity["actor"],
+          object: activity["object"],
+          target: activity["target"],
+          created_at: activity["created_at"],
           read: read
         }
       end
