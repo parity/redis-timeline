@@ -31,7 +31,7 @@ module Timeline
       end
 
       def trim_notification(list)
-        Timeline.redis.ltrim list, 0, 30
+        Timeline.redis.ltrim list, 0, 29
       end
 
       def add_mentions(activity_item)
