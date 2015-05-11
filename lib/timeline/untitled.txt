@@ -1,0 +1,4 @@
+1.upto(User.last.id).each do |u|
+   list = "user:id:#{u}:notification"
+   Timeline.redis.ltrim list, 0, 15
+end

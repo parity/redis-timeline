@@ -21,8 +21,9 @@ module Timeline
 
       def add_activity_to_subscribed_user(followers, activity_item)
         followers.each do |follower|
-          add_to_redis "user:id:#{follower.id}:notification", activity_item
-          trim_notification "user:id:#{follower.id}:notification"
+          follower_id ? follower.respond_to?(:id) ? follower.id : follower
+          add_to_redis "user:id:#{follower_id}:notification", activity_item
+          trim_notification "user:id:#{follower_id}:notification"
         end
       end
 
