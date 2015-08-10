@@ -1,4 +1,9 @@
 1.upto(User.last.id).each do |u|
    list = "user:id:#{u}:notification"
-   Timeline.redis.ltrim list, 0, 15
+   Timeline.redis.ltrim list, 0, 30
+   list = "user:id:#{u}:posts"
+   Timeline.redis.ltrim list, 0, 30
+   list = "user:id:#{u}:activity"
+   Timeline.redis.ltrim list, 0, 30
+   Timeline.redis.ltrim "global:activity:new_premium_deal", 0, 200
 end
