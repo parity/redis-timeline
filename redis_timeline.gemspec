@@ -5,7 +5,7 @@ require "timeline/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "redis_timeline"
+  s.name        = "paritytimeline"
   s.version     = Timeline::VERSION
   s.authors     = ["Felix Clack","Shiva Kumar", "Jimish Jobanputra"]
   s.email       = ["felixclack@gmail.com", "jimish@desidime.com"]
@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
 
-  s.add_dependency "activesupport", "~> 4.0.4"
-  s.add_dependency "activemodel", "~> 4.0.4"
+  s.add_dependency "activesupport", "~> 4.1.2"
+  s.add_dependency "activemodel", "~> 4.1.2"
   s.add_dependency "multi_json"
   s.add_dependency "rake"
   s.add_dependency "redis"
