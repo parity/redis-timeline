@@ -14,9 +14,35 @@ module Timeline
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
         @read = options[:read] || false
+        @liked_key = options[:liked_key]
+        @liked_by_ids = options[:liked_by_ids]
 
-        add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
+        if @liked_key ||  @liked_by_ids
+          notification_update_or_create
+        else
+          add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
+        end
         add_mentions(notification_activity)
+      end
+
+      def notification_update_or_create
+        @followers.each do |follower|
+          matching_key_not_found = true
+          Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1).each_with_index do |item, index|
+            data = Timeline.decode(item)
+            if data["liked_key"] == @liked_key && data["read"] == true
+              Timeline.redis.lrem("user:id:#{follower.id}:notification",index, Timeline.encode(data))
+              add_activity_to_subscribed_user(@followers,notification_activity)
+              matching_key_not_found = false
+              break
+            elsif data["liked_key"] == @liked_key && data["read"] == false
+              add_activity_to_subscribed_user(@followers,reset_liked_activity(data, @liked_by_ids))
+              matching_key_not_found = false
+              break
+            end
+          end
+          add_activity_to_subscribed_user(@followers,notification_activity) if matching_key_not_found
+        end
       end
 
       def add_activity_to_subscribed_user(followers, activity_item)
@@ -68,7 +94,9 @@ module Timeline
             object: @object,
             target: @target,
             created_at: Time.now,
-            read: @read
+            read: @read,
+            liked_key: @liked_key,
+            liked_by_ids: @liked_by_ids
           }
         end
 
@@ -82,17 +110,31 @@ module Timeline
           end
         end
 
-       def reset_read_activity(activity, read)
-        {
-          verb: activity["verb"],
-          actor: activity["actor"],
-          object: activity["object"],
-          target: activity["target"],
-          created_at: activity["created_at"],
-          read: read
-        }
-      end
+        def reset_read_activity(activity, read)
+          {
+            verb: "mentioned long time ago",
+            actor: activity["actor"],
+            object: activity["object"],
+            target: activity["target"],
+            created_at: activity["created_at"],
+            read: read,
+            liked_key: activity["liked_key"],
+            liked_by_ids: activity["liked_by_ids"]
+          }
+        end
 
+        def reset_liked_activity(activity, liked_by_ids)
+          {
+            verb: activity["verb"],
+            actor: activity["actor"],
+            object: activity["object"],
+            target: activity["target"],
+            created_at: activity["created_at"],
+            read: activity["read"],
+            liked_key: activity["liked_key"],
+            liked_by_ids: liked_by_ids
+          }
+        end
     end
   end
 end
