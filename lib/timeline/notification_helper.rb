@@ -14,34 +14,31 @@ module Timeline
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
         @read = options[:read] || false
-        @liked_key = options[:liked_key]
-        @liked_by_ids = options[:liked_by_ids]
+        @identifier_key = options[:identifier_key]
+        @action = options[:action]
+        @extra_info = options[:extra_info] || {}
 
-        if @liked_key ||  @liked_by_ids
-          notification_update_or_create
+        if @identifier_key &&  @action
+          activity_update_or_create
         else
           add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
         end
         add_mentions(notification_activity)
       end
 
-      def notification_update_or_create
+      def activity_update_or_create
         @followers.each do |follower|
-          matching_key_not_found = true
           Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1).each_with_index do |item, index|
             data = Timeline.decode(item)
-            if data["liked_key"] == @liked_key && data["read"] == true
+            if data["identifier_key"] == @identifier_key && @action == "create"
               Timeline.redis.lrem("user:id:#{follower.id}:notification",index, Timeline.encode(data))
-              add_activity_to_subscribed_user(@followers,notification_activity)
-              matching_key_not_found = false
+              add_activity_to_subscribed_user([follower],notification_activity)
               break
-            elsif data["liked_key"] == @liked_key && data["read"] == false
-              add_activity_to_subscribed_user(@followers,reset_liked_activity(data, @liked_by_ids))
-              matching_key_not_found = false
+            elsif data["identifier_key"] == @identifier_key && @action == "update"
+              Timeline.redis.lset("user:id:#{follower.id}:notification",index, Timeline.encode(reset_activity(data)))
               break
             end
           end
-          add_activity_to_subscribed_user(@followers,notification_activity) if matching_key_not_found
         end
       end
 
@@ -95,9 +92,8 @@ module Timeline
             target: @target,
             created_at: Time.now,
             read: @read,
-            liked_key: @liked_key,
-            liked_by_ids: @liked_by_ids
-          }
+            identifier_key: @identifier_key,
+          }.merge(@extra_info)
         end
 
         def set_follower(follower)
@@ -111,29 +107,27 @@ module Timeline
         end
 
         def reset_read_activity(activity, read)
-          {
-            verb: "mentioned long time ago",
-            actor: activity["actor"],
-            object: activity["object"],
-            target: activity["target"],
-            created_at: activity["created_at"],
-            read: read,
-            liked_key: activity["liked_key"],
-            liked_by_ids: activity["liked_by_ids"]
-          }
+          hash = {}
+          activity.each do |key, value|
+            if key = "read"
+              hash[key.to_sym] = read
+            else
+              hash[key.to_sym] = value
+            end
+          end
+          hash
         end
 
-        def reset_liked_activity(activity, liked_by_ids)
-          {
-            verb: activity["verb"],
-            actor: activity["actor"],
-            object: activity["object"],
-            target: activity["target"],
-            created_at: activity["created_at"],
-            read: activity["read"],
-            liked_key: activity["liked_key"],
-            liked_by_ids: liked_by_ids
-          }
+        def reset_activity(activity)
+          hash = {}
+          activity.each do |key, value|
+            if @extra_info.key?(key.to_sym)
+              hash[key.to_sym] = @extra_info[key.to_sym]
+            else
+              hash[key.to_sym] = value
+            end
+          end
+          hash
         end
     end
   end
