@@ -109,7 +109,7 @@ module Timeline
         def reset_read_activity(activity, read)
           hash = {}
           activity.each do |key, value|
-            if key = "read"
+            if key == "read"
               hash[key.to_sym] = read
             else
               hash[key.to_sym] = value
