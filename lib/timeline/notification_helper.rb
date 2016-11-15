@@ -93,7 +93,8 @@ module Timeline
             created_at: Time.now,
             read: @read,
             identifier_key: @identifier_key,
-          }.merge(@extra_info)
+            extra_info: @extra_info
+          }
         end
 
         def set_follower(follower)
@@ -107,27 +108,29 @@ module Timeline
         end
 
         def reset_read_activity(activity, read)
-          hash = {}
-          activity.each do |key, value|
-            if key == "read"
-              hash[key.to_sym] = read
-            else
-              hash[key.to_sym] = value
-            end
-          end
-          hash
+          {
+            verb: activity["verb"],
+            actor: activity["actor"],
+            object: activity["object"],
+            target: actvity["target"],
+            created_at: Time.now,
+            read: read,
+            identifier_key: actvity["identifier_key"],
+            extra_info: actvity["extra_info"]
+          }
         end
 
         def reset_activity(activity)
-          hash = {}
-          activity.each do |key, value|
-            if @extra_info.key?(key.to_sym)
-              hash[key.to_sym] = @extra_info[key.to_sym]
-            else
-              hash[key.to_sym] = value
-            end
-          end
-          hash
+          {
+            verb: @name || activity["verb"],
+            actor: @actor || activity["actor"],
+            object: @object || activity["object"],
+            target: @target || actvity["target"],
+            created_at: Time.now,
+            read: @read || activity["read"],
+            identifier_key: @identifier_key || activity["identifier_key"],
+            extra_info: activity["extra_info"].merge(@extra_info)
+          }
         end
     end
   end
