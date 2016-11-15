@@ -112,11 +112,11 @@ module Timeline
             verb: activity["verb"],
             actor: activity["actor"],
             object: activity["object"],
-            target: actvity["target"],
+            target: activity["target"],
             created_at: Time.now,
             read: read,
-            identifier_key: actvity["identifier_key"],
-            extra_info: actvity["extra_info"]
+            identifier_key: activity["identifier_key"],
+            extra_info: activity["extra_info"]
           }
         end
 
