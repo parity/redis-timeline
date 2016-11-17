@@ -125,7 +125,7 @@ module Timeline
             verb: @name || activity["verb"],
             actor: @actor || activity["actor"],
             object: @object || activity["object"],
-            target: @target || actvity["target"],
+            target: @target || activity["target"],
             created_at: Time.now,
             read: @read || activity["read"],
             identifier_key: @identifier_key || activity["identifier_key"],
