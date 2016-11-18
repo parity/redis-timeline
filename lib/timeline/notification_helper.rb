@@ -14,9 +14,32 @@ module Timeline
         @followers = set_follower(options[:followers])
         @mentionable = options[:mentionable]
         @read = options[:read] || false
+        @identifier_key = options[:identifier_key]
+        @action = options[:action]
+        @extra_info = options[:extra_info] || {}
 
-        add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
+        if @identifier_key &&  @action
+          activity_update_or_create
+        else
+          add_activity_to_subscribed_user(@followers,notification_activity) if @followers.present?
+        end
         add_mentions(notification_activity)
+      end
+
+      def activity_update_or_create
+        @followers.each do |follower|
+          Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1).each_with_index do |item, index|
+            data = Timeline.decode(item)
+            if data["identifier_key"] == @identifier_key && @action == "create"
+              Timeline.redis.lrem("user:id:#{follower.id}:notification",index, Timeline.encode(data))
+              add_activity_to_subscribed_user([follower],notification_activity)
+              break
+            elsif data["identifier_key"] == @identifier_key && @action == "update"
+              Timeline.redis.lset("user:id:#{follower.id}:notification",index, Timeline.encode(reset_activity(data)))
+              break
+            end
+          end
+        end
       end
 
       def add_activity_to_subscribed_user(followers, activity_item)
@@ -68,7 +91,9 @@ module Timeline
             object: @object,
             target: @target,
             created_at: Time.now,
-            read: @read
+            read: @read,
+            identifier_key: @identifier_key,
+            extra_info: @extra_info
           }
         end
 
@@ -82,17 +107,31 @@ module Timeline
           end
         end
 
-       def reset_read_activity(activity, read)
-        {
-          verb: activity["verb"],
-          actor: activity["actor"],
-          object: activity["object"],
-          target: activity["target"],
-          created_at: activity["created_at"],
-          read: read
-        }
-      end
+        def reset_read_activity(activity, read)
+          {
+            verb: activity["verb"],
+            actor: activity["actor"],
+            object: activity["object"],
+            target: activity["target"],
+            created_at: Time.now,
+            read: read,
+            identifier_key: activity["identifier_key"],
+            extra_info: activity["extra_info"]
+          }
+        end
 
+        def reset_activity(activity)
+          {
+            verb: @name || activity["verb"],
+            actor: @actor || activity["actor"],
+            object: @object || activity["object"],
+            target: @target || activity["target"],
+            created_at: Time.now,
+            read: @read || activity["read"],
+            identifier_key: @identifier_key || activity["identifier_key"],
+            extra_info: activity["extra_info"].merge(@extra_info)
+          }
+        end
     end
   end
 end
