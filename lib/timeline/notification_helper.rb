@@ -121,13 +121,18 @@ module Timeline
         end
 
         def reset_activity(activity)
+          if @read == true || @read == false
+            read = @read
+          else
+            read = activity["read"]
+          end
           {
             verb: @name || activity["verb"],
             actor: @actor || activity["actor"],
             object: @object || activity["object"],
             target: @target || activity["target"],
             created_at: Time.now,
-            read: @read || activity["read"],
+            read: read,
             identifier_key: @identifier_key || activity["identifier_key"],
             extra_info: activity["extra_info"].merge(@extra_info)
           }
