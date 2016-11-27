@@ -28,17 +28,21 @@ module Timeline
 
       def activity_update_or_create
         @followers.each do |follower|
+          notification_not_found = true
           Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1).each_with_index do |item, index|
             data = Timeline.decode(item)
             if data["identifier_key"] == @identifier_key && @action == "create"
               Timeline.redis.lrem("user:id:#{follower.id}:notification",index, Timeline.encode(data))
               add_activity_to_subscribed_user([follower],notification_activity)
+              notification_not_found = false
               break
             elsif data["identifier_key"] == @identifier_key && @action == "update"
               Timeline.redis.lset("user:id:#{follower.id}:notification",index, Timeline.encode(reset_activity(data)))
+              notification_not_found = false
               break
             end
           end
+          add_activity_to_subscribed_user([follower],notification_activity) if notification_not_found
         end
       end
 
