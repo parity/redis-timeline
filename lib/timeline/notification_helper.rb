@@ -138,7 +138,7 @@ module Timeline
             created_at: activity["created_at"] || Time.now,
             read: read,
             identifier_key: @identifier_key || activity["identifier_key"],
-            extra_info: activity["extra_info"].merge(@extra_info)
+            extra_info: activity["extra_info"].merge(@extra_info|| {})
           }
         end
     end
