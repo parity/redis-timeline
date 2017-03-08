@@ -1,5 +1,5 @@
 module Timeline
- 
+
   module NotificationHelper
     def self.included(base)
       base.send :include, InstanceMethods
@@ -64,7 +64,7 @@ module Timeline
       def add_mentions(activity_item)
         return unless @mentionable
         @mentionable.each do |mention|
-          if user = @actor.class.where("coalesce(display_name, login) = ?",mention)
+          if user = @actor.class.where("login = ?",mention)
             add_activity_to_subscribed_user(user, activity_item)
           end
         end
