@@ -29,7 +29,8 @@ module Timeline
       def activity_update_or_create
         @followers.each do |follower|
           notification_not_found = true
-          Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1).each_with_index do |item, index|
+          notifications = Timeline.redis.lrange("user:id:#{follower.id}:notification", 0, -1)
+          notifications.each_with_index do |item, index|
             data = Timeline.decode(item)
             if data["identifier_key"] == @identifier_key && @action == "create"
               Timeline.redis.lrem("user:id:#{follower.id}:notification",index, Timeline.encode(data))
@@ -79,7 +80,8 @@ module Timeline
 
       def get_unread_notification(user, options= {})
         result = {}
-        Timeline.redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10).each_with_index do |item, index|
+        notifications = Timeline.redis.lrange("user:id:#{user.id}:notification", options[:start] || 0, options[:end] || 10)
+        notifications.each_with_index do |item, index|
           data = Timeline.decode(item)
           result.merge!(index => data) unless data["read"]
         end
